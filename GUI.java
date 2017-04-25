@@ -3,8 +3,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -16,6 +18,7 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
@@ -36,13 +39,18 @@ public class GUI extends JPanel{
 	//variables for line coordinates
 	private int lx1 = 0, ly1 = 0, lx2 = 0, ly2 = 0;
 	
+	private int tx = 0, ty = 0;
+	public boolean flipped = false;
+	
 	//variable used in image rotation
 	private AffineTransformOp op = null;
 		
 		
 	public GUI(int w, int h){
 
-		Line line = new Line(lx1, ly1, lx2, ly2);
+		Triangle triangle = new Triangle(tx, ty);
+		
+		Line line = new Line(lx1, lx2, ly1, ly2);
 
 		VORImage image = new VORImage("VOR.png");
 		
@@ -52,7 +60,7 @@ public class GUI extends JPanel{
 		String windowName = "VOR";
 		JFrame frame = new JFrame(windowName);
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    
+	    	    
 	    //couldn't get images to overlap without using JLayeredPane, so using that
 	    image.setOpaque(false);
 	    image.setBounds(0, 0, w, h);
@@ -60,11 +68,14 @@ public class GUI extends JPanel{
 	    dial.setBounds(0, 0, w, h);
 	    line.setOpaque(false);
 	    line.setBounds(0, 0, w, h);
+	    triangle.setOpaque(false);
+	    triangle.setBounds(0, 0, w, h);
 	    JLayeredPane images = new JLayeredPane();
 	    images.setPreferredSize(new Dimension(w, h));
 	    images.add(image, new Integer(1));
 	    images.add(dial, new Integer(2));
-	    images.add(line, new Integer(3));
+	    images.add(triangle, new Integer(3));
+	    images.add(line, new Integer(4));
 	    frame.add(images, BorderLayout.CENTER);
 	    
 	    //add buttons to allow OBS rotation
@@ -107,6 +118,15 @@ public class GUI extends JPanel{
 		ly2 = y2;
 		repaint();
 	}
+	
+	public void setTriangle(int x, int y, boolean flip){
+		tx = x;
+		ty = y;
+		flipped = flip;
+		repaint();
+	}
+	
+	
 		
 	private class VORImage extends JPanel{
 		private BufferedImage img;
@@ -122,6 +142,11 @@ public class GUI extends JPanel{
 		
 		public void paintComponent(Graphics g){
 			g.drawImage(img, 0, 0, null);
+			Font font = new Font("Veranda", Font.BOLD, 20);
+			g.setFont(font);
+			g.setColor(Color.white);
+			g.drawString("FR", 260, 260);
+			g.drawString("TO", 256, 160);
 		}		
 	}
 	
@@ -176,4 +201,27 @@ public class GUI extends JPanel{
 		}
 		
 	}
+	
+	public class Triangle extends JPanel{
+		
+		public Triangle(int xPos, int yPos){
+			tx = xPos;
+			ty = yPos;
+		}
+		
+		public void paintComponent(Graphics g){
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setColor(Color.RED);
+			int[] xList = {tx-10, tx, tx+10}; 
+			int[] yList = {ty, ty-20, ty}; 
+			if(flipped){
+				yList[0] = ty-20;
+				yList[1] = ty; 
+				yList[2] = ty-20;
+			}
+	        g2.fillPolygon(new Polygon(xList, yList, 3)); 
+		}
+		
+	}
+	
 }
