@@ -18,19 +18,19 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
 @SuppressWarnings("serial")
 public class GUI extends JPanel{
 	
+	//buttons used to rotate the OBS left and right
     private JButton OBSRight = new JButton("OBS Right 5 Degrees");
     private JButton OBSLeft = new JButton("OBS Left 5 Degrees");
     
     //the image starts at a 300 degree rotation, so this variable
     //is used to offset degree calculations
-    private final int VARIANCE = 300;
+    public final static int VARIANCE = 300;
     
     //start at a random rotation
     static Random rand = new Random();
@@ -39,18 +39,19 @@ public class GUI extends JPanel{
 	//variables for line coordinates
 	private int lx1 = 0, ly1 = 0, lx2 = 0, ly2 = 0;
 	
-	private int tx = 0, ty = 0;
-	public boolean flipped = false;
-	
 	//variable used in image rotation
 	private AffineTransformOp op = null;
+	
+	//variables used for the TO and FR triangle indicator
+	private int tx = 0, ty = 0;
+	public boolean flipped = false;
 		
 		
 	public GUI(int w, int h){
-
-		Triangle triangle = new Triangle(tx, ty);
 		
-		Line line = new Line(lx1, lx2, ly1, ly2);
+		Triangle triangle = new Triangle(tx, ty);
+
+		Line line = new Line(lx1, ly1, lx2, ly2);
 
 		VORImage image = new VORImage("VOR.png");
 		
@@ -60,7 +61,7 @@ public class GUI extends JPanel{
 		String windowName = "VOR";
 		JFrame frame = new JFrame(windowName);
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    	    
+	    
 	    //couldn't get images to overlap without using JLayeredPane, so using that
 	    image.setOpaque(false);
 	    image.setBounds(0, 0, w, h);
@@ -83,20 +84,19 @@ public class GUI extends JPanel{
 	    OBSButtons.add(OBSLeft);
 	    OBSLeft.addActionListener(new ActionListener(){
 	    	public void actionPerformed(ActionEvent e){ 
-	    		degree -= 5;
-	    		if(VARIANCE - degree > 360){
-	    			degree += 360;
+	    		degree += 5;
+	    		if(degree > 360){
+	    			degree -= 360;
 	    		}
 	    		dial.rotateDial(degree);
-	    		
 	    	}
 	    });
 	    OBSButtons.add(OBSRight);
 	    OBSRight.addActionListener(new ActionListener(){
 	    	public void actionPerformed(ActionEvent e){ 
-	    		degree += 5;
-	    		if(VARIANCE - degree < 0){
-	    			degree -= 360;
+	    		degree -= 5;
+	    		if(degree <= 0){
+	    			degree += 360;
 	    		}
 	    		dial.rotateDial(degree);
 	    	}
@@ -105,9 +105,6 @@ public class GUI extends JPanel{
 	    frame.setResizable(false);
 	    frame.pack();
 	    frame.setVisible(true);
-	    
-	    //rotate the dial to the current degree
-	    dial.rotateDial(degree);
 	}
 	
 	
@@ -126,8 +123,7 @@ public class GUI extends JPanel{
 		repaint();
 	}
 	
-	
-		
+	//the background image
 	private class VORImage extends JPanel{
 		private BufferedImage img;
 		
@@ -150,6 +146,7 @@ public class GUI extends JPanel{
 		}		
 	}
 	
+	//the dial image
 	//this image has to be a different class than the other one because of the
 	//different paint method
 	private class OBSImage extends JPanel{
@@ -158,6 +155,7 @@ public class GUI extends JPanel{
 		private OBSImage(String filename){
 			try {
 		        img = ImageIO.read(new File(filename));
+		        rotateDial(degree);
 		      }
 		      catch (IOException e) {
 		        System.out.println("ERROR: Unable to open specified imagefile:" + filename);
@@ -165,7 +163,7 @@ public class GUI extends JPanel{
 		}
 		
 		public void rotateDial(int degree){
-			double rotationRequired = Math.toRadians (degree);
+			double rotationRequired = Math.toRadians (- degree + VARIANCE);
 			double locationX = img.getWidth() / 2;
 			double locationY = img.getHeight() / 2;
 			AffineTransform tx = AffineTransform.getRotateInstance(rotationRequired, locationX, locationY);
@@ -183,7 +181,7 @@ public class GUI extends JPanel{
 		}	
 	}
 	
-	
+	//the line that serves as the needle
 	public class Line extends JPanel{
 		
 		public Line(int x1, int y1, int x2, int y2){
@@ -202,6 +200,7 @@ public class GUI extends JPanel{
 		
 	}
 	
+	//the triangle that indicates to or from
 	public class Triangle extends JPanel{
 		
 		public Triangle(int xPos, int yPos){
@@ -223,5 +222,4 @@ public class GUI extends JPanel{
 		}
 		
 	}
-	
 }
