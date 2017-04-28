@@ -1,23 +1,44 @@
-/*
-*This object represents the OBS.
-*It is used to represent and set the omni bearing selector. 
-*It can be used to set or retrieve the OBS setting.
-*
-*/
-class OBS{{
-   private int radial;
-   public OBS{(int radial){
-	   if((radial <= 359) && (radial >=0)){
-		setOBS(radial);   
-	   }
-	   else{
-		   setOBS(0);
-	   }
-   }
-   public void setOBS(int radial){
-      this.radial = radial;
-   }
-   public int getOBS(){
-      return this.radial;
-   }
+import java.awt.Graphics;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+
+public class OBS extends JPanel{
+		private BufferedImage img;
+		
+		//variable used in image rotation
+		private AffineTransformOp op = null;
+		
+		public OBS(String filename){
+			try {
+		        img = ImageIO.read(new File(filename));
+		        rotateDial(GUI.degree);
+		      }
+		      catch (IOException e) {
+		        System.out.println("ERROR: Unable to open specified imagefile:" + filename);
+	      }
+	}
+	
+	public void rotateDial(int degree){
+		double rotationRequired = Math.toRadians (- degree + GUI.VARIANCE);
+		double locationX = img.getWidth() / 2;
+		double locationY = img.getHeight() / 2;
+		AffineTransform tx = AffineTransform.getRotateInstance(rotationRequired, locationX, locationY);
+		op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+		repaint();
+	}
+	
+	public void paintComponent(Graphics g){
+		if(op != null){
+			g.drawImage(op.filter(img, null), 0, 0, null);
+		}
+		else{
+			g.drawImage(img, 0, 0, null);
+		}
+	}	
 }
